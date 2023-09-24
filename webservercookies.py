@@ -120,7 +120,12 @@ class WebRequestHandler(BaseHTTPRequestHandler):
                     if cont >= 3:
                         break
                     book = match.group(1)
-        # pureza,ha,sido Karl,Marx,fatal allanando,su,carrera
+        # /search?palabras_clave=fatal,lucha,crisis - El capital  
+        # /search?palabras_clave=viejo,mar,historia - El viejo y el mar 
+        # /search?palabras_clave=Franz,Kafka,literal - La metamorfosis 
+        # /search?palabras_clave=muchacha,ama,joven - Marianela
+        # /search?palabras_clave=Hegel,obras,importantes - La fenomenologia del espiritu 
+        
         if cont >=3:
             print("hola que tal")
             self.get_book(book)
