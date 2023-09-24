@@ -51,11 +51,13 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         all_books = [str(i+1) for i in range(5)]
         new = [b for b in all_books if b not in
                [vb.decode() for vb in books]]
-        if len(new) > 3:
-            new[0]
-        # if new:
-        #     return new[0]
-
+        if len(new) != 0:
+            if len(new) < 3:
+                return new[0]
+            return "Lea 3 libros para recibir recomendaciones"
+        else:
+            return "No hay mas recomendaciones"
+            
     def get_book(self, book_id):
         session_id = self.get_book_session()
         book_recomendation = self.get_book_recomendation(session_id, book_id)

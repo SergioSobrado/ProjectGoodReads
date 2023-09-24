@@ -1,5 +1,6 @@
 import os
 import redis
+from bs4 import BeautifulSoup
 import re
 # https://github.com/redis/redis-py
 
@@ -19,3 +20,19 @@ def load_folder(path):
 
 
 load_folder('html/books/')
+
+def search(path):
+    files = os.listdir(path)
+    print(files)
+    for file in files:
+        match = re.match(r'^book(\d+).html$', file)
+        if match:
+            with open(path + file) as f:
+                html = f.read()
+                soup = BeautifulSoup(html, 'html.parser')
+                tag = soup.get_text()
+                palabras = tag.split()
+                r.sadd("Lea"+match.group(1), r.set(palabras, ))
+                print(palabras)
+search('html/books/')
+
