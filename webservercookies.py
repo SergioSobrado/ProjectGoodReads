@@ -100,47 +100,36 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         query_parameters = urllib.parse.parse_qs(query_string)
         # Obtiene las palabras clave de la query string
         palabras_clave = query_parameters.get('palabras_clave', ())
-
-
-
         # Conecta a Redis
         redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
         # Obtiene las palabras clave almacenadas en Redis
-        palabras_clave_redis = redis_client.smembers('Lea4')
-        
-        with open('html/index.html') as archivo_html:
-                contenido_html = archivo_html.read()
+        palabras_clave_redis4 = redis_client.smembers('Lea4')
+        palabras_clave_redis3 = redis_client.smembers('Lea3')
+        palabras_clave_redis2 = redis_client.smembers('Lea2')
+        palabras_clave_redis1 = redis_client.smembers('Lea1')
+        palabras_clave_redis5 = redis_client.smembers('Lea5')
 
         cont = 0
-        for pal in palabras_clave_redis:
+        for pal in palabras_clave_redis1|palabras_clave_redis2:
             x = pal.decode()
             for p in palabras_clave:
-                y = p.split(',')
-                print(y[cont])
-                if y[cont] in x:
-                    print(y[cont])
-                    cont+=1
-                    print(cont)
-                if cont >= 3:
-                    break   
-
+                y = str(p).split(',')
+            if x in y: 
+                cont += 1
+            if cont >= 3:
+                break
+             
         if cont >=3:
             print("hola que tal")
-            self.wfile.write(contenido_html.encode())
+            self.get_index()
         else:
             self.wfile.write("Las palabras clave no se encontraron en la página.".encode())
-        
-        # print(palabra)
-        # todas_presentes = all(palabras_clave in contenido_html for palabras in palabras_clave_redis)
-       
-              
-
+             
         # Envía la respuesta
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
             
-
 mapping = [
             (r'^/books/(?P<book_id>\d+)$', 'get_book'),
             (r'^/$', 'get_index'),
