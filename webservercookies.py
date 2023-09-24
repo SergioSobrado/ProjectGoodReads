@@ -2,9 +2,11 @@ from functools import cached_property
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qsl, urlparse
+import urllib.parse
 import re
 import redis
 import uuid 
+import os
 
 r = redis.Redis(host='localhost', port=6379, db=0)
 
@@ -51,6 +53,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         all_books = [str(i+1) for i in range(5)]
         new = [b for b in all_books if b not in
                [vb.decode() for vb in books]]
+
         if len(new) != 0:
             if len(new) < 3:
                 return new[0]
@@ -91,11 +94,41 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             match = re.match(pattern, path)
             if match:
                 return (method, match.groupdict())
+    
+    def get_bookByWord(self):
+        query_string = urllib.parse.urlparse(self.path).query
+        query_parameters = urllib.parse.parse_qs(query_string)
+        # Obtiene las palabras clave de la query string
+        palabras_clave = query_parameters.get('palabras_clave', [])
+        
+        # Conecta a Redis
+        redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+        # Obtiene las palabras clave almacenadas en Redis
+        palabras_clave_redis = redis_client.smembers('Lea4')
+   
+        with open('html/index.html') as archivo_html:
+            contenido_html = archivo_html.read()
+
+        # todas_presentes = all(palabras_clave in contenido_html for palabras in palabras_clave_redis)
+        for palabras in palabras_clave_redis:
+            if palabras_clave.__contains__(palabras):
+                print("hola que tal")
+                self.wfile.write(contenido_html.encode())
+            else:
+                self.wfile.write("Las palabras clave no se encontraron en la página.".encode())
+              
+
+        # Envía la respuesta
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+            
 
 mapping = [
             (r'^/books/(?P<book_id>\d+)$', 'get_book'),
-            (r'^/$', 'get_index')
+            (r'^/$', 'get_index'),
+            (r'^/search$', 'get_bookByWord')
         ]
 
 if __name__ == "__main__":

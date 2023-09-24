@@ -23,7 +23,6 @@ load_folder('html/books/')
 
 def search(path):
     files = os.listdir(path)
-    print(files)
     for file in files:
         match = re.match(r'^book(\d+).html$', file)
         if match:
@@ -32,7 +31,8 @@ def search(path):
                 soup = BeautifulSoup(html, 'html.parser')
                 tag = soup.get_text()
                 palabras = tag.split()
-                r.sadd("Lea"+match.group(1), r.set(palabras, ))
-                print(palabras)
+                for pal in palabras:
+                    r.sadd("Lea"+match.group(1), pal)
+
 search('html/books/')
 
