@@ -103,25 +103,37 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         # Conecta a Redis
         redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
         # Obtiene las palabras clave almacenadas en Redis
-        palabras_clave_redis4 = redis_client.smembers('Lea4')
-        palabras_clave_redis3 = redis_client.smembers('Lea3')
-        palabras_clave_redis2 = redis_client.smembers('Lea2')
-        palabras_clave_redis1 = redis_client.smembers('Lea1')
-        palabras_clave_redis5 = redis_client.smembers('Lea5')
-
+        # palabras_clave_redis4 = redis_client.smembers('Lea4')
+        # palabras_clave_redis3 = redis_client.smembers('Lea3')
+        # palabras_clave_redis2 = redis_client.smembers('Lea2')
+        # palabras_clave_redis1 = redis_client.smembers('Lea1')
+        # palabras_clave_redis5 = redis_client.smembers('Lea5')
         cont = 0
-        for pal in palabras_clave_redis1|palabras_clave_redis2:
-            x = pal.decode()
-            for p in palabras_clave:
-                y = str(p).split(',')
-            if x in y: 
-                cont += 1
-            if cont >= 3:
-                break
-             
+
+        #
+        KeysLea = r.keys()
+        for key in KeysLea:
+            k = key.decode()
+            match = re.match(r'^Lea(\d+)$', k)
+            if match:
+                palabras_clave_redis = redis_client.smembers("Lea"+match.group(1))
+                print(match.group(1))
+                for pal in palabras_clave_redis:
+                    x = pal.decode()
+                    for p in palabras_clave:
+                        y = str(p).split(',')
+                    if x in y: 
+                        print(match.group(1))
+                        cont += 1
+                    if cont >= 3:
+                        break
+                    book = match.group(1)
+        # pureza,ha,sido Karl,Marx,fatal allanando,su,carrera
+
+
         if cont >=3:
             print("hola que tal")
-            self.get_index()
+            self.get_book(book)
         else:
             self.wfile.write("Las palabras clave no se encontraron en la página.".encode())
              
