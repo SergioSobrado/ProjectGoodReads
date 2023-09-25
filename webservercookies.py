@@ -127,7 +127,6 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         # /search?palabras_clave=Hegel,obras,importantes - La fenomenologia del espiritu 
         
         if cont >=3:
-            print("hola que tal")
             self.get_book(book)
         else:
             self.get_index()
