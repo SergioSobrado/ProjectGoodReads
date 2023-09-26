@@ -45,23 +45,9 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             method_name, dict_params = method
             method = getattr(self, method_name)
             method(**dict_params)
-            # booksB = None
-            # if self.query_data and 'q' in self.query_data:
-            #     booksB = r.sinter(self.query_data['q'].split(' '))     
             return
         else:
             self.send_error(404, "Not Found")
-
-#     def get_response(self, book):
-
-#         return f""" 
-#         <form action="/" method = "get">
-#             <label for ="q"> Busqueda </label>
-#             <input type="text" name = "q" required/>
-#         </forms>
-#         <p>  Diccionario: {self.query_data}      </p>
-#         <p>  Libro: {book}      </p>
-# """
 
 
     def get_book_recomendation(self, session_id, book_id):
@@ -118,15 +104,17 @@ class WebRequestHandler(BaseHTTPRequestHandler):
     def get_bookByWord(self):
         if self.query_data and 'q' in self.query_data:
             booksB = r.sinter(self.query_data['q'].split(' '))
-        lista = []
-        for b in booksB:
-            y = b.decode()
-            lista.append(y)
-        for i in range(0, len(lista)):
-            if i<=len(lista):
-                self.get_book(lista[i])
-            else:
-                self.get_index()              
+            lista = []
+            for b in booksB:
+                y = b.decode()
+                lista.append(y)
+                print(lista)
+
+            for i in range(0, len(lista)):
+                if i<len(lista):
+                    self.get_book(lista[i])
+                else:
+                    self.get_index()              
 
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
