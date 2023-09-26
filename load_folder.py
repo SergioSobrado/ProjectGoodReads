@@ -22,9 +22,10 @@ def load_folder(path):
 
 def search(book_id, html):
     soup = BeautifulSoup(html, 'html.parser')
-    tag = str(soup.p)
+    tag = str(soup.p).lower()
     palabras = tag.split()
     for pal in palabras:
-        r.sadd("Lea"+book_id, pal)
+        pal = pal.replace(",","")
+        r.sadd(pal, book_id)
 
 load_folder('html/books/')

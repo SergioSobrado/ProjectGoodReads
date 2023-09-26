@@ -16,6 +16,10 @@ class WebRequestHandler(BaseHTTPRequestHandler):
         return urlparse(self.path)
 
     @cached_property
+    def query_data(self):
+        return dict(parse_qsl(self.url.query))
+
+    @cached_property
     def cookies(self):
         return SimpleCookie(self.headers.get("Cookie"))
 
@@ -41,9 +45,24 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             method_name, dict_params = method
             method = getattr(self, method_name)
             method(**dict_params)
+            # booksB = None
+            # if self.query_data and 'q' in self.query_data:
+            #     booksB = r.sinter(self.query_data['q'].split(' '))     
             return
         else:
             self.send_error(404, "Not Found")
+
+#     def get_response(self, book):
+
+#         return f""" 
+#         <form action="/" method = "get">
+#             <label for ="q"> Busqueda </label>
+#             <input type="text" name = "q" required/>
+#         </forms>
+#         <p>  Diccionario: {self.query_data}      </p>
+#         <p>  Libro: {book}      </p>
+# """
+
 
     def get_book_recomendation(self, session_id, book_id):
         r.rpush(session_id, book_id)
@@ -89,6 +108,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
             response = f.read()
         self.wfile.write(response.encode("utf-8"))
 
+
     def get_method(self, path):
         for pattern, method in mapping:
             match = re.match(pattern, path)
@@ -96,50 +116,26 @@ class WebRequestHandler(BaseHTTPRequestHandler):
                 return (method, match.groupdict())
     
     def get_bookByWord(self):
-        query_string = urllib.parse.urlparse(self.path).query
-        query_parameters = urllib.parse.parse_qs(query_string)
-        # Obtiene las palabras clave de la query string
-        palabras_clave = query_parameters.get('palabras_clave', ())
-        # Conecta a Redis
-        redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
-        cont = 0
-        KeysLea = r.keys()
-        for key in KeysLea:
-            k = key.decode()
-            match = re.match(r'^Lea(\d+)$', k)
-            if match:
-                palabras_clave_redis = redis_client.smembers("Lea"+match.group(1))
-                print(match.group(1))
-                for pal in palabras_clave_redis:
-                    x = pal.decode()
-                    for p in palabras_clave:
-                        y = str(p).split(',')
-                    if x in y: 
-                        print(match.group(1))
-                        cont += 1
-                    if cont >= 3:
-                        break
-                    book = match.group(1)
-        # /search?palabras_clave=fatal,lucha,crisis - El capital  
-        # /search?palabras_clave=viejo,mar,historia - El viejo y el mar 
-        # /search?palabras_clave=Franz,Kafka,literal - La metamorfosis 
-        # /search?palabras_clave=muchacha,ama,joven - Marianela
-        # /search?palabras_clave=Hegel,obras,importantes - La fenomenologia del espiritu 
-        
-        if cont >=3:
-            self.get_book(book)
-        else:
-            self.get_index()
-             
-        # Envía la respuesta
+        if self.query_data and 'q' in self.query_data:
+            booksB = r.sinter(self.query_data['q'].split(' '))
+        lista = []
+        for b in booksB:
+            y = b.decode()
+            lista.append(y)
+        for i in range(0, len(lista)):
+            if i<=len(lista):
+                self.get_book(lista[i])
+            else:
+                self.get_index()              
+
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-            
+                
 mapping = [
             (r'^/books/(?P<book_id>\d+)$', 'get_book'),
             (r'^/$', 'get_index'),
-            (r'^/search$', 'get_bookByWord')
+            (r'^/busqueda$', 'get_bookByWord')
         ]
 
 if __name__ == "__main__":
